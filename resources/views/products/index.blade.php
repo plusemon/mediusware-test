@@ -19,7 +19,8 @@
                         @foreach ($variants as $variant)
                             <optgroup label="{{ $variant['name'] }}">
                                 @foreach ($variant['options'] ?? [] as $option)
-                                    <option value="{{ Str::lower($variant['name']) . '-' . $option }}">{{ $option }}</option>
+                                    <option value="{{ $option['id'] }}" {{ request('variant') == $option['id'] ? 'selected' : '' }}>
+                                        {{ $option['value'] }}</option>
                                 @endforeach
                             </optgroup>
                         @endforeach
@@ -67,19 +68,26 @@
                                 <td>{{ $product->title }} <br> Created at : {{ $product->created_at->format('d-M-Y') }}</td>
                                 <td>{{ Str::limit($product->description, 30) }}</td>
                                 <td>
-                                    <dl class="row mb-0" style="height: 80px; overflow: hidden" id="variant">
+                                    <dl class="row mb-0" style="height: 80px; overflow: hidden" id="variant-{{ $product->id }}">
 
                                         <dt class="col-sm-3 pb-0">
-                                            SM/ Red/ V-Nick
+                                            @foreach ($product->prices as $price)
+                                                {{ $price->getVariants()->implode('/') }}
+                                                <br>
+                                            @endforeach
                                         </dt>
                                         <dd class="col-sm-9">
-                                            <dl class="row mb-0">
-                                                <dt class="col-sm-4 pb-0">Price : {{ number_format(200, 2) }}</dt>
-                                                <dd class="col-sm-8 pb-0">InStock : {{ number_format(50, 2) }}</dd>
-                                            </dl>
+                                            @foreach ($product->prices as $price)
+                                                <dl class="row mb-0">
+                                                    <dt class="col-sm-4 pb-0">Price : {{ number_format($price->price, 2) }}</dt>
+                                                    <dd class="col-sm-8 pb-0">InStock : {{ number_format($price->stock, 2) }}</dd>
+                                                </dl>
+                                            @endforeach
                                         </dd>
                                     </dl>
-                                    <button onclick="$('#variant').toggleClass('h-auto')" class="btn btn-sm btn-link">Show
+
+                                    <button onclick="$('#variant-{{ $product->id }}').toggleClass('h-auto')"
+                                            class="btn btn-sm btn-link">Show
                                         more</button>
                                 </td>
                                 <td>
@@ -103,7 +111,7 @@
                     <p>Showing {{ $products->firstItem() }} to {{ $products->lastItem() }} out of {{ $products->total() }}</p>
                 </div>
                 <div class="col-md-2">
-                    {{ $products->links() }}
+                    {{ $products->withQueryString()->links() }}
                 </div>
             </div>
         </div>

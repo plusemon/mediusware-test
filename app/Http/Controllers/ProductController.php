@@ -18,7 +18,10 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::query()
+
+
+
+        $products = Product::query()->with('prices')
 
             // filter by title
             ->when(request('title'), function (Builder $query) {
@@ -26,17 +29,24 @@ class ProductController extends Controller
                 $query->where('title', 'LIKE', "%$keyword%");
             })
 
-            // filter by variation -------------------not completed------------------xx
-            ->when(request('variation'), function (Builder $query) {
-                $query;
+            // filter by variation | variant, price
+            ->whereHas('prices', function ($q) {
+
+                $price_from = intval(request('price_from'));
+                $price_to = intval(request('price_to'));
+                $variant = request('variant');
+
+                $q->when($price_from, function (Builder $query, $price_from) {
+                    $query->where('price', '>=', $price_from);
+                })->when($price_to, function (Builder $query, $price_to) {
+                    $query->where('price', '<=', $price_to);
+                })->when($variant, function (Builder $query, $variant) {
+                    $query->where('product_variant_one', $variant)
+                        ->orWhere('product_variant_two', $variant)
+                        ->orWhere('product_variant_three', $variant);
+                });
             })
 
-            // filter by price range -------------------not completed------------------xx
-            ->when(request('price_from') or request('price_to'), function (Builder $query) {
-                $price_from = request('price_from');
-                $price_to = request('price_to');
-                // $query->whereBetween('price', [$price_from, $price_to]);
-            })
 
             // filter by date
             ->when(request('date'), function (Builder $query) {
@@ -49,7 +59,12 @@ class ProductController extends Controller
         $variants = Variant::with('options')->get()->map(function ($variant) {
             return [
                 'name' => $variant->title,
-                'options' => $variant->options->unique('variant')->pluck('variant')
+                'options' => $variant->options->unique('variant')->map(function ($option) {
+                    return [
+                        'id' => $option->id,
+                        'value' => $option->variant
+                    ];
+                })
             ];
         });
 
