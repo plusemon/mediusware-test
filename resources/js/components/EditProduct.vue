@@ -1,6 +1,10 @@
 <template>
     <section>
-        <div class="row">
+        <div v-if="this.showAlert" class="alert alert-success alert-dismissible fade show" role="alert">
+            Product has been updated successfully.
+        </div>
+
+        <div class="row" id>
             <div class="col-md-6">
                 <div class="card shadow mb-4">
                     <div class="card-body">
@@ -24,7 +28,10 @@
                         <h6 class="m-0 font-weight-bold text-primary">Media</h6>
                     </div>
                     <div class="card-body border">
-                        <vue-dropzone ref="myVueDropzone" id="dropzone" :options="dropzoneOptions"></vue-dropzone>
+                        <vue-dropzone ref="myVueDropzone" id="dropzone" :options="dropzoneOptions"
+                            @vdropzone-success="uploaded" @vdropzone-file-added="addfile">
+
+                        </vue-dropzone>
                     </div>
                 </div>
             </div>
@@ -35,7 +42,7 @@
                         <h6 class="m-0 font-weight-bold text-primary">Variants</h6>
                     </div>
                     <div class="card-body">
-                        <div class="row" v-for="(item, index) in       product_variant      ">
+                        <div class="row" v-for="(item, index) in           product_variant          ">
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="">Option</label>
@@ -75,7 +82,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="      variant_price       in       product_variant_prices      ">
+                                    <tr v-for="          variant_price           in           product_variant_prices          ">
                                         <td>{{ variant_price.title }}</td>
                                         <td>
                                             <input type="text" class="form-control" v-model=" variant_price.price ">
@@ -114,32 +121,39 @@ export default {
         },
         product: {
             type: Object,
-            required: false
+            required: true
         }
     },
     data() {
         return {
-            product_id: '',
-            product_name: '',
-            product_sku: '',
-            description: '',
+            product_name: this.product.title ? this.product.title : '',
+            product_sku: this.product.sku ? this.product.sku : '',
+            description: this.product.description ? this.product.description : '',
             images: [],
-            product_variant: [
-                {
-                    option: this.variants[0].id,
-                    tags: []
-                }
-            ],
+            product_variant: [],
             product_variant_prices: [],
+            showAlert: false,
             dropzoneOptions: {
-                url: 'https://httpbin.org/post',
+                url: "http://mediusware-test.test/api/product",
                 thumbnailWidth: 150,
-                maxFilesize: 0.5,
+                maxFilesize: 2,
+                autoProcessQueue: false,
+                uploadMultiple: true,
+                parallelUploads: 100,
+                maxFiles: 100,
                 headers: { "My-Awesome-Header": "header value" }
             }
         }
     },
     methods: {
+        uploaded: async function (file, response) {
+            console.log(response)
+        },
+        addfile: async function (file) {
+            this.images.push(file)
+            console.log(this.images)
+        },
+
         // it will push a new object into product variant
         newVariant() {
             let all_variants = this.variants.map(el => el.id)
@@ -168,6 +182,7 @@ export default {
                     stock: 0
                 })
             })
+            this.loadPrices()
         },
 
         // combination algorithm
@@ -183,35 +198,67 @@ export default {
             return ans
         },
 
-        // store product into database
+        // update product into database
         saveProduct() {
-            let product = {
-                title: this.product_name,
-                sku: this.product_sku,
-                description: this.description,
-                product_image: this.images,
-                product_variant: this.product_variant,
-                product_variant_prices: this.product_variant_prices
+            // console.log(this.product_name)
+            let formData = new FormData()
+            formData.append('title', this.product_name)
+            formData.append('sku', this.product_sku)
+            formData.append('description', this.description)
+
+            for (let x = 0; x < this.images.length; x++) {
+                formData.append('product_image[]', this.images[x])
+            }
+            for (let x = 0; x < this.product_variant.length; x++) {
+                formData.append('product_variant[]', JSON.stringify(this.product_variant[x]))
+            }
+            for (let x = 0; x < this.product_variant_prices.length; x++) {
+                formData.append('product_variant_prices[]', JSON.stringify(this.product_variant_prices[x]))
             }
 
+            axios.post(`/product-update/${this.product.id}`, formData).then(response => {
+                this.showAlert = true
+                setTimeout(() => {
+                    this.showAlert = false
+                }, 3000)
 
-            axios.patch(`/product/${this.product_id}`, product).then(response => {
-                console.log(response.data)
             }).catch(error => {
                 console.log(error)
             })
-
-            console.log(product)
+        },
+        loadProductVariant() {
+            let update
+            this.product.variants.forEach((item, index) => {
+                this.product_variant && this.product_variant.forEach((item2, index2) => {
+                    if (item2.option == item.variant_id) {
+                        item2.tags.push(item.variant)
+                        update = true
+                        return
+                    }
+                })
+                if (!update) {
+                    this.product_variant.push({
+                        option: item.variant_id,
+                        tags: [item.variant]
+                    })
+                }
+                // console.log(this.product_variant[index])
+            })
+            console.log(this.product_variant)
+        },
+        loadPrices() {
+            this.product.prices.forEach((item, index) => {
+                if (this.product_variant_prices[index]) {
+                    this.product_variant_prices[index].price = item.price
+                    this.product_variant_prices[index].stock = item.stock
+                }
+            })
         }
-
     },
     mounted() {
-        if (this.product) {
-            this.product_id = this.product.id
-            this.product_name = this.product.title
-            this.product_sku = this.product.sku
-            this.description = this.product.description
-        }
-    }
+        this.loadProductVariant()
+        this.checkVariant()
+        this.loadPrices()
+    },
 }
 </script>

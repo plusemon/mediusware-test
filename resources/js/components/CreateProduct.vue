@@ -1,5 +1,8 @@
 <template>
     <section>
+        <div v-if="this.successAlert" class="alert alert-success alert-dismissible fade show" role="alert">
+            Product has been saved successfully
+        </div>
         <div class="row">
             <div class="col-md-6">
                 <div class="card shadow mb-4">
@@ -10,7 +13,7 @@
                         </div>
                         <div class="form-group">
                             <label for="">Product SKU</label>
-                            <input type="text" v-model="product_sku" placeholder="Product SKU" class="form-control">
+                            <input type="text" v-model="product_sku" placeholder="Product Sku" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="">Description</label>
@@ -24,7 +27,10 @@
                         <h6 class="m-0 font-weight-bold text-primary">Media</h6>
                     </div>
                     <div class="card-body border">
-                        <vue-dropzone ref="myVueDropzone" id="dropzone" :options="dropzoneOptions"></vue-dropzone>
+                        <vue-dropzone ref="myVueDropzone" id="dropzone" :options="dropzoneOptions"
+                            @vdropzone-success="uploaded" @vdropzone-file-added="addfile">
+
+                        </vue-dropzone>
                     </div>
                 </div>
             </div>
@@ -35,13 +41,12 @@
                         <h6 class="m-0 font-weight-bold text-primary">Variants</h6>
                     </div>
                     <div class="card-body">
-                        <div class="row" v-for="(item,index) in product_variant">
+                        <div class="row" v-for="(item, index) in        product_variant       ">
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="">Option</label>
                                     <select v-model="item.option" class="form-control">
-                                        <option v-for="variant in variants"
-                                                :value="variant.id">
+                                        <option v-for="variant in variants" :value="variant.id">
                                             {{ variant.title }}
                                         </option>
                                     </select>
@@ -49,17 +54,19 @@
                             </div>
                             <div class="col-md-8">
                                 <div class="form-group">
-                                    <label v-if="product_variant.length != 1" @click="product_variant.splice(index,1); checkVariant"
-                                           class="float-right text-primary"
-                                           style="cursor: pointer;">Remove</label>
+                                    <label v-if="product_variant.length != 1"
+                                        @click="product_variant.splice(index, 1); checkVariant"
+                                        class="float-right text-primary" style="cursor: pointer;">Remove</label>
                                     <label v-else for="">.</label>
-                                    <input-tag v-model="item.tags" @input="checkVariant" class="form-control"></input-tag>
+                                    <input-tag v-model=" item.tags " @input=" checkVariant "
+                                        class="form-control"></input-tag>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="card-footer" v-if="product_variant.length < variants.length && product_variant.length < 3">
-                        <button @click="newVariant" class="btn btn-primary">Add another option</button>
+                    <div class="card-footer"
+                        v-if=" product_variant.length < variants.length && product_variant.length < 3 ">
+                        <button @click=" newVariant " class="btn btn-primary">Add another option</button>
                     </div>
 
                     <div class="card-header text-uppercase">Preview</div>
@@ -67,22 +74,22 @@
                         <div class="table-responsive">
                             <table class="table">
                                 <thead>
-                                <tr>
-                                    <td>Variant</td>
-                                    <td>Price</td>
-                                    <td>Stock</td>
-                                </tr>
+                                    <tr>
+                                        <td>Variant</td>
+                                        <td>Price</td>
+                                        <td>Stock</td>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                <tr v-for="variant_price in product_variant_prices">
-                                    <td>{{ variant_price.title }}</td>
-                                    <td>
-                                        <input type="text" class="form-control" v-model="variant_price.price">
-                                    </td>
-                                    <td>
-                                        <input type="text" class="form-control" v-model="variant_price.stock">
-                                    </td>
-                                </tr>
+                                    <tr v-for="   variant_price    in    product_variant_prices   ">
+                                        <td>{{ variant_price.title }}</td>
+                                        <td>
+                                            <input type="text" class="form-control" v-model=" variant_price.price ">
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control" v-model=" variant_price.stock ">
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -91,7 +98,7 @@
             </div>
         </div>
 
-        <button @click="saveProduct" type="submit" class="btn btn-lg btn-primary">Save</button>
+        <button @click=" saveProduct " type="submit" class="btn btn-lg btn-primary">Save</button>
         <button type="button" class="btn btn-secondary btn-lg">Cancel</button>
     </section>
 </template>
@@ -125,19 +132,37 @@ export default {
                 }
             ],
             product_variant_prices: [],
+            successAlert: false,
             dropzoneOptions: {
-                url: 'https://httpbin.org/post',
+                url: "http://localhost:8000/api/product",
                 thumbnailWidth: 150,
-                maxFilesize: 0.5,
-                headers: {"My-Awesome-Header": "header value"}
+                maxFilesize: 2,
+                autoProcessQueue: false,
+                uploadMultiple: true,
+                parallelUploads: 100,
+                maxFiles: 100,
+                headers: { "My-Awesome-Header": "header value" }
             }
         }
     },
     methods: {
+        uploaded: async function (file, response) {
+            console.log(response)
+        },
+        addfile: async function (file) {
+            // this.images = this.$refs.myVueDropzone.getAcceptedFiles();
+            this.images.push(file)
+            console.log(this.images)
+        },
+        // sending: async function(file, xhr, formData){
+        //     formData.append('title', this.product_name);
+        //     console.log(formData.file)
+        // },
+
         // it will push a new object into product variant
         newVariant() {
             let all_variants = this.variants.map(el => el.id)
-            let selected_variants = this.product_variant.map(el => el.option);
+            let selected_variants = this.product_variant.map(el => el.option)
             let available_variants = all_variants.filter(entry1 => !selected_variants.some(entry2 => entry1 == entry2))
             // console.log(available_variants)
 
@@ -149,10 +174,10 @@ export default {
 
         // check the variant and render all the combination
         checkVariant() {
-            let tags = [];
-            this.product_variant_prices = [];
+            let tags = []
+            this.product_variant_prices = []
             this.product_variant.filter((item) => {
-                tags.push(item.tags);
+                tags.push(item.tags)
             })
 
             this.getCombn(tags).forEach(item => {
@@ -166,42 +191,53 @@ export default {
 
         // combination algorithm
         getCombn(arr, pre) {
-            pre = pre || '';
+            pre = pre || ''
             if (!arr.length) {
-                return pre;
+                return pre
             }
-            let self = this;
+            let self = this
             let ans = arr[0].reduce(function (ans, value) {
-                return ans.concat(self.getCombn(arr.slice(1), pre + value + '/'));
-            }, []);
-            return ans;
+                return ans.concat(self.getCombn(arr.slice(1), pre + value + '/'))
+            }, [])
+            return ans
         },
 
         // store product into database
         saveProduct() {
-            let product = {
-                title: this.product_name,
-                sku: this.product_sku,
-                description: this.description,
-                product_image: this.images,
-                product_variant: this.product_variant,
-                product_variant_prices: this.product_variant_prices
+
+            // send data as formData
+            let formData = new FormData()
+            formData.append('title', this.product_name)
+            formData.append('sku', this.product_sku)
+            formData.append('description', this.description)
+
+            for (x = 0; x < this.images.length; x++) {
+                formData.append('product_image[]', this.images[x])
+            }
+            for (x = 0; x < this.product_variant.length; x++) {
+                formData.append('product_variant[]', JSON.stringify(this.product_variant[x]))
+            }
+            for (x = 0; x < this.product_variant_prices.length; x++) {
+                formData.append('product_variant_prices[]', JSON.stringify(this.product_variant_prices[x]))
             }
 
+            // send request to store data
+            axios.post('/product', formData).then(response => {
+                // console.log(response.data)
+                this.successAlert = true
 
-            axios.post('/product', product).then(response => {
-                console.log(response.data);
+                setTimeout(() => {
+                    this.successAlert = false
+                }, 3000)
+
             }).catch(error => {
-                console.log(error);
+                console.log(error)
             })
-
-            console.log(product);
-        }
-
+        },
 
     },
     mounted() {
         console.log('Component mounted.')
-    }
+    },
 }
 </script>
