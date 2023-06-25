@@ -18,8 +18,6 @@ class ProductController extends Controller
      */
     public function index()
     {
-
-
         $products = Product::query()
 
             // filter by title
@@ -46,7 +44,16 @@ class ProductController extends Controller
                 $query->whereDate('created_at', $keyword);
             })
             ->paginate(2);
-        return view('products.index', compact('products'));
+
+        // filtering view datas
+        $variants = Variant::with('options')->get()->map(function ($variant) {
+            return [
+                'name' => $variant->title,
+                'options' => $variant->options->unique('variant')->pluck('variant')
+            ];
+        });
+
+        return view('products.index', compact('products', 'variants'));
     }
 
     /**
@@ -68,6 +75,10 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        // create product
+        // product variants
+        // product variants prices
+        // product images
     }
 
 
