@@ -14,8 +14,15 @@
                            class="form-control">
                 </div>
                 <div class="col-md-2">
-                    <select name="variant" id="" class="form-control">
-
+                    <select name="variant" class="form-control">
+                        <option value=""> -- Select a Variant-</option>
+                        @foreach ($variants as $variant)
+                            <optgroup label="{{ $variant['name'] }}">
+                                @foreach ($variant['options'] ?? [] as $option)
+                                    <option value="{{ Str::lower($variant['name']) . '-' . $option }}">{{ $option }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
                     </select>
                 </div>
 

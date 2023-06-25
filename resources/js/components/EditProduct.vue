@@ -35,7 +35,7 @@
                         <h6 class="m-0 font-weight-bold text-primary">Variants</h6>
                     </div>
                     <div class="card-body">
-                        <div class="row" v-for="(item, index) in      product_variant     ">
+                        <div class="row" v-for="(item, index) in       product_variant      ">
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="">Option</label>
@@ -75,7 +75,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="     variant_price      in      product_variant_prices     ">
+                                    <tr v-for="      variant_price       in       product_variant_prices      ">
                                         <td>{{ variant_price.title }}</td>
                                         <td>
                                             <input type="text" class="form-control" v-model=" variant_price.price ">
@@ -119,6 +119,7 @@ export default {
     },
     data() {
         return {
+            product_id: '',
             product_name: '',
             product_sku: '',
             description: '',
@@ -194,7 +195,7 @@ export default {
             }
 
 
-            axios.post('/product', product).then(response => {
+            axios.patch(`/product/${this.product_id}`, product).then(response => {
                 console.log(response.data)
             }).catch(error => {
                 console.log(error)
@@ -206,6 +207,7 @@ export default {
     },
     mounted() {
         if (this.product) {
+            this.product_id = this.product.id
             this.product_name = this.product.title
             this.product_sku = this.product.sku
             this.description = this.product.description

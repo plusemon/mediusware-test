@@ -10,7 +10,7 @@
                         </div>
                         <div class="form-group">
                             <label for="">Product SKU</label>
-                            <input type="text" v-model="product_sku" placeholder="Product Name" class="form-control">
+                            <input type="text" v-model="product_sku" placeholder="Product SKU" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="">Description</label>

@@ -2058,6 +2058,7 @@ __webpack_require__.r(__webpack_exports__);
   },
   data: function data() {
     return {
+      product_id: '',
       product_name: '',
       product_sku: '',
       description: '',
@@ -2136,7 +2137,7 @@ __webpack_require__.r(__webpack_exports__);
         product_variant: this.product_variant,
         product_variant_prices: this.product_variant_prices
       };
-      axios.post('/product', product).then(function (response) {
+      axios.patch("/product/".concat(this.product_id), product).then(function (response) {
         console.log(response.data);
       })["catch"](function (error) {
         console.log(error);
@@ -2146,6 +2147,7 @@ __webpack_require__.r(__webpack_exports__);
   },
   mounted: function mounted() {
     if (this.product) {
+      this.product_id = this.product.id;
       this.product_name = this.product.title;
       this.product_sku = this.product.sku;
       this.description = this.product.description;
