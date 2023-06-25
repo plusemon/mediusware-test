@@ -134,7 +134,7 @@ export default {
             product_variant_prices: [],
             successAlert: false,
             dropzoneOptions: {
-                url: "http://localhost:8000/api/product",
+                url: "http://localhost:8000",
                 thumbnailWidth: 150,
                 maxFilesize: 2,
                 autoProcessQueue: false,

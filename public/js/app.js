@@ -1945,7 +1945,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       product_variant_prices: [],
       successAlert: false,
       dropzoneOptions: {
-        url: "http://localhost:8000/api/product",
+        url: "http://localhost:8000",
         thumbnailWidth: 150,
         maxFilesize: 2,
         autoProcessQueue: false,
@@ -2131,7 +2131,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       product_variant_prices: [],
       showAlert: false,
       dropzoneOptions: {
-        url: "http://mediusware-test.test/api/product",
+        url: "http://localhost:8080",
         thumbnailWidth: 150,
         maxFilesize: 2,
         autoProcessQueue: false,
