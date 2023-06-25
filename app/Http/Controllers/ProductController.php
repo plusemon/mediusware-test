@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\ProductVariantPrice;
 use App\Models\Variant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -17,7 +18,35 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return view('products.index');
+
+
+        $products = Product::query()
+
+            // filter by title
+            ->when(request('title'), function (Builder $query) {
+                $keyword = request('title');
+                $query->where('title', 'LIKE', "%$keyword%");
+            })
+
+            // filter by variation -------------------not completed------------------xx
+            ->when(request('variation'), function (Builder $query) {
+                $query;
+            })
+
+            // filter by price range -------------------not completed------------------xx
+            ->when(request('price_from') or request('price_to'), function (Builder $query) {
+                $price_from = request('price_from');
+                $price_to = request('price_to');
+                // $query->whereBetween('price', [$price_from, $price_to]);
+            })
+
+            // filter by date
+            ->when(request('date'), function (Builder $query) {
+                $keyword = request('date');
+                $query->whereDate('created_at', $keyword);
+            })
+            ->paginate(2);
+        return view('products.index', compact('products'));
     }
 
     /**
@@ -39,7 +68,6 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-
     }
 
 
@@ -51,7 +79,6 @@ class ProductController extends Controller
      */
     public function show($product)
     {
-
     }
 
     /**
@@ -63,7 +90,7 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $variants = Variant::all();
-        return view('products.edit', compact('variants'));
+        return view('products.edit', compact('variants', 'product'));
     }
 
     /**
